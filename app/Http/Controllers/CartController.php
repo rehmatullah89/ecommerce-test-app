@@ -1,49 +1,52 @@
 <?php
 
-<?php
-
 namespace App\Http\Controllers;
 
-use App\Models\CartItem;
-use App\Models\Product;
+use App\Interfaces\Services\CartServiceInterface;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
 
 class CartController extends Controller
 {
+    protected $cartService;
+
+    public function __construct(CartServiceInterface $cartService)
+    {
+        $this->cartService = $cartService;
+    }
+
     public function index()
     {
-        $cartItems = auth()->user()->cartItems()->with('product')->get();
-        
         return response()->json([
-            'items' => $cartItems->map(function ($item) {
-                return [
-                    'id' => $item->product_id,
-                    'name' => $item->product->name,
-                    'price' => $item->product->price,
-                    'quantity' => $item->quantity
-                ];
-            })
+            'items' => $this->cartService->getCartItems()
         ]);
     }
 
     public function addItem(Request $request)
     {
-        $request->validate([
+        // Manual validation
+        $validator = Validator::make($request->all(), [
             'product_id' => 'required|exists:products,id',
             'quantity' => 'required|integer|min:1'
         ]);
 
-        $user = auth()->user();
-        $product = Product::find($request->product_id);
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validation error',
+                'errors' => $validator->errors()
+            ], 422);
+        }
 
-        $cartItem = $user->cartItems()->updateOrCreate(
-            ['product_id' => $product->id],
-            ['quantity' => \DB::raw("quantity + {$request->quantity}")]
-        );
-
-        return response()->json([
-            'message' => 'Product added to cart',
-            'item' => $cartItem
-        ]);
+        try {
+            $cartItem = $this->cartService->addToCart($request->all());
+            return response()->json([
+                'message' => 'Product added to cart',
+                'item' => $cartItem
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage()
+            ], 400);
+        }
     }
 }

@@ -22,5 +22,15 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(ProductRepositoryInterface::class, ProductRepository::class);
         $this->app->bind(OrderRepositoryInterface::class, OrderRepository::class);
         $this->app->bind(UserRepositoryInterface::class, UserRepository::class);
+
+       $this->app->bind(
+            \App\Interfaces\Services\CartServiceInterface::class,
+            \App\Services\CartService::class
+        );
+        
+        $this->app->bind(
+            \App\Interfaces\Repositories\CartRepositoryInterface::class,
+            \App\Repositories\CartRepository::class
+        ); 
     }
 }

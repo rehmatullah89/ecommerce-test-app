@@ -112,6 +112,7 @@ $app->register(Illuminate\Database\MigrationServiceProvider::class);
 //$app->register(Illuminate\Database\SeedServiceProvider::class);
 $app->alias('JWTAuth', Tymon\JWTAuth\Facades\JWTAuth::class);
 $app->alias('JWTFactory', Tymon\JWTAuth\Facades\JWTFactory::class);
+$app->register(Illuminate\Validation\ValidationServiceProvider::class);
 
 
 /*
